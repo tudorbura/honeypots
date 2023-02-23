@@ -296,7 +296,7 @@ class CustomHandlerFileRotate(RotatingFileHandler):
 
 class CustomHttpHandler(HTTPHandler):
     def __init__(self, host, url):
-        HTTPHandler.__init__(self, host, url)
+        HTTPHandler.__init__(self, host, url, secure=True)
 
     def emit(self, record):
         """
