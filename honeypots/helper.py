@@ -156,13 +156,17 @@ def setup_logger(name, temp_name, config, drop=False):
     if 'http' in logs:
         http_server = config_data.get('logs_http_server')
         http_url = config_data.get('logs_http_url', '/')
-        http_handler = CustomHttpHandler(host=http_server, url=http_url)
+        http_excluded_actions = config_data.get('logs_http_excluded_actions', [])
+        for i in range(len(http_excluded_actions)):
+            http_excluded_actions[i] = http_excluded_actions[i].lower()
+        http_handler = CustomHttpHandler(host=http_server, url=http_url, excluded_actions=http_excluded_actions)
         formatter = Formatter(fmt=f'%(message)s')
         http_handler.setFormatter(formatter)
         ret_logs_obj.addHandler(http_handler)
         print('-------Added HTTP Handler - SUCCESS!-------')
         print('-------------SERVER:-----------------------', http_server)
         print('---------------URL:------------------------', http_url)
+        print('---------SKIP ACTIONS:---------------------', http_excluded_actions)
     if 'file' in logs:
         max_bytes = 10000
         backup_count = 10
@@ -298,7 +302,8 @@ class CustomHandlerFileRotate(RotatingFileHandler):
 
 
 class CustomHttpHandler(HTTPHandler):
-    def __init__(self, host, url):
+    def __init__(self, host, url, excluded_actions=[]):
+        self.excluded_actions = excluded_actions
         HTTPHandler.__init__(self, host, url, secure=True)
 
     def getConnection(self, host, secure):
@@ -321,10 +326,19 @@ class CustomHttpHandler(HTTPHandler):
         """
         try:
             import urllib.parse
+            import json
+            data = record.msg
+            data_json = json.loads(data)
+            current_action=data_json.get('action', '')
+            if current_action.lower() in self.excluded_actions:
+                print('-------SKIPPING ACTION (HTTP)-------  ', current_action)
+                return
+            else:
+                print('--------SENDING ACTION (HTTP)-------  ', current_action)
+
             host = self.host
             h = self.getConnection(host, self.secure)
             url = self.url
-            data = record.msg
             h.putrequest("POST", url)
             h.putheader("Content-type", "application/json")
             h.putheader("Content-length", str(len(data)))
