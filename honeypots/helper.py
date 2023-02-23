@@ -160,6 +160,9 @@ def setup_logger(name, temp_name, config, drop=False):
         formatter = Formatter(fmt=f'%(message)s')
         http_handler.setFormatter(formatter)
         ret_logs_obj.addHandler(http_handler)
+        print('-------Added HTTP Handler - SUCCESS!-------')
+        print('-------------SERVER:-----------------------', http_server)
+        print('---------------URL:------------------------', http_url)
     if 'file' in logs:
         max_bytes = 10000
         backup_count = 10
