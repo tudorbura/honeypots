@@ -301,6 +301,20 @@ class CustomHttpHandler(HTTPHandler):
     def __init__(self, host, url):
         HTTPHandler.__init__(self, host, url, secure=True)
 
+    def getConnection(self, host, secure):
+        """
+        get a HTTP[S]Connection.
+
+        Override when a custom connection is required, for example if
+        there is a proxy.
+        """
+        import http.client
+        if secure:
+            connection = http.client.HTTPSConnection(host, context=self.context)
+        else:
+            connection = http.client.HTTPConnection(host)
+        return connection
+
     def emit(self, record):
         """
         Send the record to the web server as an utf-8 encoded string
