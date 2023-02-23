@@ -308,8 +308,13 @@ class CustomHttpHandler(HTTPHandler):
         print('-----start emit-----')
         try:
             import urllib.parse
+            import http.client
             host = self.host
-            h = self.getConnection(host, self.secure)
+            #h = self.getConnection(host, self.secure)
+            if self.secure:
+                h = http.client.HTTPSConnection(host, context=self.context)
+            else:
+                h = http.client.HTTPConnection(host)
             url = self.url
             data = record.msg
             h.putrequest("POST", url)
