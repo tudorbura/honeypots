@@ -20,7 +20,7 @@ from json import JSONEncoder, dumps, load
 from logging import Handler, Formatter, DEBUG, getLogger, addLevelName, INFO, Logger
 from sys import stdout
 from datetime import datetime
-from logging.handlers import RotatingFileHandler, SysLogHandler
+from logging.handlers import RotatingFileHandler, SysLogHandler, HTTPHandler
 from tempfile import _get_candidate_names, gettempdir
 from os import makedirs, path, scandir, devnull, getuid
 from psycopg2 import sql
@@ -153,6 +153,13 @@ def setup_logger(name, temp_name, config, drop=False):
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter, config_data, drop))
     elif 'terminal' in logs:
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter))
+    if 'http' in logs:
+        http_server = config_data.get('logs_http_server')
+        http_url = config_data.get('logs_http_url', '/')
+        http_handler = CustomHttpHandler(host=http_server, url=http_url)
+        formatter = Formatter(fmt=f'%(message)s')
+        http_handler.setFormatter(formatter)
+        ret_logs_obj.addHandler(http_handler)
     if 'file' in logs:
         max_bytes = 10000
         backup_count = 10
@@ -285,6 +292,30 @@ class CustomHandlerFileRotate(RotatingFileHandler):
         _record = parse_record(record, self.custom_filter, 'file')
         if _record is not None:
             super().emit(_record)
+
+
+class CustomHttpHandler(HTTPHandler):
+    def __init__(self, host, url):
+        HTTPHandler.__init__(self, host, url)
+
+    def emit(self, record):
+        """
+        Send the record to the web server as an utf-8 encoded string
+        """
+        try:
+            import urllib.parse
+            host = self.host
+            h = self.getConnection(host, self.secure)
+            url = self.url
+            data = record.msg
+            h.putrequest("POST", url)
+            h.putheader("Content-type", "application/json")
+            h.putheader("Content-length", str(len(data)))
+            h.endheaders()
+            h.send(data.encode('utf-8'))
+            h.getresponse()
+        except Exception:
+            self.handleError(record)
 
 
 class CustomHandler(Handler):
