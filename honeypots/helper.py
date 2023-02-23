@@ -302,6 +302,7 @@ class CustomHttpHandler(HTTPHandler):
         """
         Send the record to the web server as an utf-8 encoded string
         """
+        print('-----start emit-----')
         try:
             import urllib.parse
             host = self.host
@@ -312,9 +313,12 @@ class CustomHttpHandler(HTTPHandler):
             h.putheader("Content-type", "application/json")
             h.putheader("Content-length", str(len(data)))
             h.endheaders()
+            print('---sending data: ', data)
             h.send(data.encode('utf-8'))
             h.getresponse()
-        except Exception:
+            print('------success-------\n')
+        except Exception as e:
+            print('--exception--', e)
             self.handleError(record)
 
 
