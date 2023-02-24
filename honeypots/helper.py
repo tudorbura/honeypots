@@ -167,6 +167,11 @@ def setup_logger(name, temp_name, config, drop=False):
         print('-------------SERVER:-----------------------', http_server)
         print('---------------URL:------------------------', http_url)
         print('---------SKIP ACTIONS:---------------------', http_excluded_actions)
+        print('-------------------------------------------')
+        for handler in ret_logs_obj.handlers:
+            print(type(handler), ' --- ', handler.name, ' --- ', handler)
+        print('-------------------------------------------')
+
     if 'file' in logs:
         max_bytes = 10000
         backup_count = 10
