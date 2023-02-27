@@ -126,7 +126,7 @@ def disable_logger(logger_type, object):
         object.startLogging(open(temp_name, 'w'), setStdout=False)
 
 
-def setup_logger(name, temp_name, config, drop=False):
+def setup_logger(name, temp_name, config, drop=False, log_url=''):
     logs = 'terminal'
     logs_location = ''
     syslog_address = ''
@@ -153,6 +153,16 @@ def setup_logger(name, temp_name, config, drop=False):
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter, config_data, drop))
     elif 'terminal' in logs:
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter))
+    if log_url in logs:
+        requests_handler = CustomRequestsHandler(log_url)
+        formatter = Formatter(fmt=f'%(message)s')
+        requests_handler.setFormatter(formatter)
+        ret_logs_obj.addHandler(requests_handler)
+        print('-------Added HTTP Requests - SUCCESS!-------')
+        print('------------------URL-----------------------', log_url)
+
+
+
     if 'http' in logs:
         http_server = config_data.get('logs_http_server')
         http_url = config_data.get('logs_http_url', '/')
@@ -350,6 +360,46 @@ class CustomHttpHandler(HTTPHandler):
             h.endheaders()
             h.send(data.encode('utf-8'))
             h.getresponse()
+        except Exception as e:
+            print('-------EXCEPTION SENDING DATA-------  ', e)
+            self.handleError(record)
+
+
+class CustomRequestsHandler(Handler):
+    def __init__(self, url, http_excluded_actions=["post", "get", "process"]):
+        self.url = url
+        self.excluded_actions = http_excluded_actions
+        Handler.__init__(self)
+
+    def emit(self, record):
+        """
+        Send the record to the web server as an utf-8 encoded string
+        """
+        try:
+            from urllib import request, parse
+            import json
+            data = record.msg
+            data_json = json.loads(data)
+            current_action = data_json.get('action', '')
+            if current_action.lower() in self.excluded_actions:
+                print('-------SKIPPING ACTION (HTTP)-------  ', current_action)
+                return
+            else:
+                print('--------SENDING ACTION (HTTP)-------  ', current_action)
+
+            data.encode('utf-8')
+            req = request.Request(self.url, data=data.encode('utf-8'), headers={"Content-type": "application/json"})
+            res = request.urlopen(req)
+            
+            #host = self.host
+            #h = self.getConnection(host, self.secure)
+            #url = self.url
+            #h.putrequest("POST", url)
+            #h.putheader("Content-type", "application/json")
+            #h.putheader("Content-length", str(len(data)))
+            #h.endheaders()
+            #h.send(data.encode('utf-8'))
+            #h.getresponse()
         except Exception as e:
             print('-------EXCEPTION SENDING DATA-------  ', e)
             self.handleError(record)
