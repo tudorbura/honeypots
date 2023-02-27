@@ -110,7 +110,6 @@ def main_logic():
     ARG_PARSER_OPTIONAL.add_argument('--password', help='Override the password', metavar='', default='')
     ARG_PARSER_OPTIONAL.add_argument('--config', help='Use a config file for honeypots settings', metavar='', default='')
     ARG_PARSER_OPTIONAL.add_argument('--options', type=str, help='Extra options', metavar='', default='')
-    ARG_PARSER_OPTIONAL.add_argument('--url', type=str, help='Logging URL', metavar='', default='')
     ARG_PARSER_OPTIONAL_2 = ARG_PARSER.add_argument_group('General options')
     ARG_PARSER_OPTIONAL_2.add_argument('--termination-strategy', help='Determines the strategy to terminate by', default='input', choices=['input', 'signal'])
     ARG_PARSER_OPTIONAL_2.add_argument('--test', default='', metavar='', help='Test a honeypot')
@@ -125,12 +124,6 @@ def main_logic():
     print("[!] For updates, check https://github.com/qeeqbox/honeypots")
     if check_privileges() == False:
         print("[!] Using system or well-known ports requires higher privileges (E.g. sudo -E)")
-    if ARGV.url:
-        uuid = 'honeypotslogger' + '_' + 'main' + '_' + str(uuid4())[:8]
-        logs = setup_logger('main', uuid, ARGV.config, True, ARGV.url)
-        print(f'log_url=={ARGV.url}')
-    log_url = ARGV.url
-
     if ARGV.config != '':
         with open(ARGV.config) as f:
             try:
@@ -143,12 +136,12 @@ def main_logic():
                 if 'db_options' in config_data:
                     if 'drop' in config_data['db_options']:
                         print('[x] Setup Logger {} with a db, drop is on'.format(uuid))
-                        logs = setup_logger('main', uuid, ARGV.config, True, log_url)
+                        logs = setup_logger('main', uuid, ARGV.config, True)
                     else:
                         print('[x] Setup Logger {} with a db, drop is off'.format(uuid))
-                        logs = setup_logger('main', uuid, ARGV.config, False, log_url)
+                        logs = setup_logger('main', uuid, ARGV.config, False)
                 else:
-                    logs = setup_logger('main', uuid, ARGV.config, True, log_url)
+                    logs = setup_logger('main', uuid, ARGV.config, True)
     if ARGV.list:
         list_all_honeypots()
     elif ARGV.kill:
