@@ -153,7 +153,7 @@ def setup_logger(name, temp_name, config, drop=False, log_url=''):
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter, config_data, drop))
     elif 'terminal' in logs:
         ret_logs_obj.addHandler(CustomHandler(temp_name, logs, custom_filter))
-    if log_url in logs:
+    if log_url != '':
         requests_handler = CustomRequestsHandler(log_url)
         formatter = Formatter(fmt=f'%(message)s')
         requests_handler.setFormatter(formatter)
