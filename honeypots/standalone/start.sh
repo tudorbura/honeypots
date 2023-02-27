@@ -8,5 +8,3 @@ activate(){
     honeypots --setup http:1234 --config config.json
 }
 activate
-
-#bash .venv/bin/activate && pip3 install -r requirements.txt && cp *.py .venv/lib/python3.9/site-packages/honeypots && echo {\"logs\":\"terminal,url\", \"url\":\"$1\"} > config.json && honeypots --setup http:1234 --config config.json
