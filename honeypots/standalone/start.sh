@@ -4,7 +4,7 @@ python3 -m venv .venv
 activate(){
     . ./.venv/bin/activate
     pip3 install -r requirements.txt
-    cp *.py .venv/lib/python3.9/site-packages/honeypots
+    cp ../helper.py .venv/lib/python3.9/site-packages/honeypots
     honeypots --setup http:1234 --config config.json
 }
 activate
