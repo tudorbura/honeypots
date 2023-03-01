@@ -1,8 +1,5 @@
 # Docker image startup script
-# usage: startup.sh <URL for logging>
-
-wget https://get.docker.com -O get_docker.sh
-sh get_docker.sh
+# usage: 2_run_honeypots_docker_image.sh <URL for logging>
 
 /etc/init.d/docker start
 
@@ -18,9 +15,6 @@ BIND_PORTS="-p $HTTP_PORT:$HTTP_PORT  -p $FTP_PORT:$FTP_PORT"
 
 # Setup excluded actions. must include escaped double qoutes and separated by commas
 EXCLUDED_ACTIONS=\"get\",\"post\",\"something\"
-
-#login step - will be removed
-#docker login
 
 # run the image
 docker run -e URL=$1 -e SERVICES=$SERVICES -e EXCLUDED_ACTIONS=$EXCLUDED_ACTIONS $BIND_PORTS -it autorunnner00/my-images:start_all-1.0.0
