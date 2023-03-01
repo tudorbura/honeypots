@@ -1,0 +1,19 @@
+# Base image to use
+FROM python:3.7
+
+# Set working dir
+WORKDIR /srv
+
+# predefine honeypots startup services
+ENV SERVICES http:1234
+
+# predefined excluded actions
+ENV EXCLUDED_ACTIONS \"post\",\"get\",\"something\"
+
+# install code straight from GIT
+RUN pip install git+https://github.com/tudorbura/honeypots.git
+
+# copy startup script
+COPY run_honeypots.sh .
+
+CMD [ "sh", "run_honeypots.sh" ]
